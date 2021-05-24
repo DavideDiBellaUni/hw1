@@ -1,0 +1,52 @@
+// Creazione tabelle
+
+create table utente(
+    username varchar(30) primary key,
+    password varchar(70),
+    nome varchar(30),
+    cognome varchar(30),
+    email varchar(30),
+    num_articoli integer) Engine = InnoDB;
+
+create table articolo(
+    cod_articolo integer NOT NULL AUTO_INCREMENT,
+    username varchar(30),
+    sezione varchar(30),
+    titolo varchar(30),
+    nomefile varchar(30),
+    data_pubblicazione date,
+    foreign key(username) references utente(username) on update cascade,
+    primary key(cod_articolo) ) Engine =InnoDB;
+
+
+
+create table preferiti(
+    cod_articolo integer,
+    username varchar(30),
+    foreign key(username) references utente(username) on update cascade,
+    foreign key(cod_articolo)references articolo(cod_articolo) on update cascade,
+    primary key(cod_articolo,username)) Engine = InnoDB;
+)
+
+
+create view artpref as
+select l.cod_articolo,p.username as userpref, l.username as autore,titolo,sezione,nomefile,data_pubblicazione from articolo l join preferiti p on l.cod_articolo=p.cod_articolo;
+
+delimiter //
+create trigger addarticolo
+after insert on articolo
+for each row
+begin
+update utente set num_articoli=num_articoli+1 where username= new.username;
+end //
+delimiter ;
+
+delimiter //
+create trigger removearticolo
+after delete on articolo
+for each row
+begin
+update utente set num_articoli=num_articoli-1 where username= old.username;
+end //
+delimiter ;
+
